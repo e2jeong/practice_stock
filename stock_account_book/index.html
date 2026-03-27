@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Household Account Book</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-header">
+            <h1>Stock Portfolio Manager</h1>
+            <div class="api-key-container">
+                <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key..." />
+                <button id="saveApiKeyBtn" class="btn primary">Save API Key</button>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <!-- Left Column: Inputs & Portfolio -->
+            <div class="main-column">
+                <!-- Transaction Form -->
+                <section class="glass-panel">
+                    <h2>Log New Transaction</h2>
+                    <form id="transactionForm" class="transaction-form">
+                        <div class="form-group">
+                            <label for="sector">Stock / Sector</label>
+                            <input type="text" id="sector" required placeholder="e.g. Technology, Apple Inc." />
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Purchase Date</label>
+                            <input type="date" id="date" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price Per Share ($)</label>
+                            <input type="number" id="price" required min="0" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" id="quantity" required min="1" step="1" />
+                        </div>
+                        <button type="submit" class="btn secondary">Add Transaction</button>
+                    </form>
+                </section>
+
+                <!-- Portfolio Table -->
+                <section class="glass-panel portfolio-section">
+                    <h2>Your Portfolio</h2>
+                    <div class="table-container">
+                        <table id="portfolioTable">
+                            <thead>
+                                <tr>
+                                    <th>Sector/Stock</th>
+                                    <th>Date</th>
+                                    <th>Price ($)</th>
+                                    <th>Qty</th>
+                                    <th>Total Value ($)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic rows go here -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-right">Total Investment:</th>
+                                    <th id="totalInvestmentVal" colspan="2">$0.00</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: AI Chat -->
+            <div class="side-column">
+                <section class="glass-panel ai-chat-panel">
+                    <h2>AI Investment Counselor</h2>
+                    <p class="subtitle">Powered by Gemini-3-Flash-Preview</p>
+                    <div class="chat-window" id="chatWindow">
+                        <div class="message ai">
+                            <div class="bubble">Hello! I'm your AI investment counselor. How can I help you analyze your portfolio today?</div>
+                        </div>
+                    </div>
+                    <form id="chatForm" class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ask about your portfolio..." autocomplete="off" />
+                        <button type="submit" class="btn primary send-btn">Send</button>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
