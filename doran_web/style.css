@@ -220,5 +220,39 @@ input[type="text"]:focus, input[type="password"]:focus {
     background: #020617; border-radius: 0.5rem; padding: 1.25rem; font-family: monospace; font-size: 0.85rem; color: #a5b4fc; text-align: left; overflow-x: auto;
 }
 
+/* Weekday Selector Styles */
+.weekday-selector {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    justify-content: center;
+}
+.weekday-btn {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.weekday-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+.weekday-btn.selected {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
 /* Global Navigation */
 .global-nav { display: flex; gap: 20px; background: rgba(30, 41, 59, 0.8); padding: 15px 30px; border-radius: 50px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); z-index: 1000; border: 1px solid rgba(255, 255, 255, 0.1); } .global-nav a { color: #f8fafc; text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: all 0.3s ease; } .global-nav a:hover, .global-nav a.active { background: #3b82f6; color: white; }

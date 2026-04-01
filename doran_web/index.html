@@ -28,9 +28,20 @@
                 <label for="api-key">Gemini 3 Flash Preview API Key</label>
                 <input type="password" id="api-key" placeholder="AI 연동을 위한 키를 입력하세요..." autocomplete="off">
             </div>
+
+            <div class="input-group">
+                <label>선호하는 요일 직접 지정 (선택)</label>
+                <div class="weekday-selector">
+                    <button type="button" class="weekday-btn" data-day="월">월</button>
+                    <button type="button" class="weekday-btn" data-day="화">화</button>
+                    <button type="button" class="weekday-btn" data-day="수">수</button>
+                    <button type="button" class="weekday-btn" data-day="목">목</button>
+                    <button type="button" class="weekday-btn" data-day="금">금</button>
+                </div>
+            </div>
             
             <div class="input-group">
-                <label for="chat-input">도란 일정 챗봇 (예: "다음 달 도란 일정 잡아줘")</label>
+                <label for="chat-input">추가 요구사항 (예: "랜덤하게 도란 일정 잡아줘")</label>
                 <div class="chat-row">
                     <input type="text" id="chat-input" placeholder="원하시는 일정을 말씀해 주세요...">
                     <button id="btn-start" class="primary-btn">로딩</button>

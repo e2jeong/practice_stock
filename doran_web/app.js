@@ -1,8 +1,9 @@
 // 핵심 상태 관리
 const PARTICIPANTS = ["피카츄", "라이츄", "파이리", "꼬북이", "버터풀", "야도란", "피죤투", "또가스"];
 let CANDIDATES = [];
-let VOTE_STATE = {}; // { "피카츄": "2026-05-12", ... }
+let VOTE_STATE = {}; // { "피카츄": "2026-05-12 (화)", ... }
 let CURRENT_SELECTED_VOTER = null; // 현재 UI에서 조작 중인 투표자
+let SELECTED_WEEKDAYS = new Set(); // 선택된 요일 Set
 
 // 2026 한국 공휴일 하드코딩 (파이썬과 동일 스펙)
 const HOLIDAYS_2026 = [
@@ -21,6 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 상태 맵 초기화
     PARTICIPANTS.forEach(p => VOTE_STATE[p] = null);
     
+    // 요일 선택 버튼 이벤트
+    document.querySelectorAll('.weekday-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const day = btn.dataset.day;
+            if (SELECTED_WEEKDAYS.has(day)) {
+                SELECTED_WEEKDAYS.delete(day);
+                btn.classList.remove('selected');
+            } else {
+                SELECTED_WEEKDAYS.add(day);
+                btn.classList.add('selected');
+            }
+        });
+    });
+
     // 시작 버튼 이벤트 연동
     btnStart.addEventListener('click', initGeminiProcess);
     
@@ -97,25 +112,33 @@ function getNextMonthCandidates() {
 }
 
 // Gemini API 연동 함수 (조건에 맞는 날짜 직접 추출)
-async function fetchCandidatesWithGemini(apiKey, promptText) {
+// Gemini API 연동 함수 (조건에 맞는 날짜 직접 추출)
+async function fetchCandidatesWithGemini(apiKey, promptText, selectedWeekdaysArray) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
     
+    const weekdayCondition = selectedWeekdaysArray && selectedWeekdaysArray.length > 0 
+        ? `[필수 조건] 사용자가 다음 요일만 원합니다: "${selectedWeekdaysArray.join(', ')}" 요일. 오직 이 요일에 해당하는 날짜만 골라야 합니다.` 
+        : `[선택 조건] 사용자가 특별히 선호하는 요일을 명시하지 않았습니다. 원하시는 요일이 없다면 무작위 평일을 고르세요.`;
+
     // 프롬프트 구성: 현재 시점과 휴일 데이터, 그리고 사용자 요구사항 명시
     const promptDetails = `
 현재 상황: 당신은 팀 회식('도란') 일정을 잡아주는 스마트 비서입니다. 기준일은 2026년 4월입니다.
 미션: 2026년 5월(다음 달)의 날짜 중 3~5개의 후보일을 선정하여 JSON 배열 문자열 형태로만 응답하세요.
 
-[필수 조건]
+[필수 기본 규칙]
 1. 평일(월~금)이어야 하며 주말은 제외합니다.
 2. 2026-05-05(어린이날), 2026-05-25(대체공휴일)은 제외합니다.
-3. 사용자의 요청에 특정 요일("화요일", "목요일" 등) 또는 기타 조건이 명시되어 있다면, 반드시 해당 조건에 부합하는 날짜만을 추출해야 합니다. 
-만약 아무 조건도 없다면 조건 1, 2를 만족하는 랜덤한 평일 3~5개를 골라주세요.
+${weekdayCondition}
 
-사용자 요청: "${promptText}"
+[자가 검증 (Self-Verification) 단계]
+당신이 고른 후보 날짜들이 실제로 위 조건과 일치하는 정확한 요일(월, 화, 수, 목, 금)인지 달력을 보고 스스로 두 번 검증하세요. 검증된 날짜만 최종 후보로 선택하세요. (예: 5/15가 지정된 요일이 맞는지 재확인)
 
 [응답 형식]
+날짜와 해당 요일을 함께 표시한 포맷 "YYYY-MM-DD (요일)" 형식으로 출력하세요.
 오류 없이 곧바로 파싱될 수 있도록 오직 배열 구조만 출력하세요. 
-예시: ["2026-05-07", "2026-05-12", "2026-05-14"]`;
+예시: ["2026-05-07 (목)", "2026-05-12 (화)", "2026-05-14 (목)"]
+
+사용자 추가 요구사항: "${promptText}"`;
 
     try {
         const response = await fetch(url, {
@@ -164,7 +187,8 @@ async function initGeminiProcess() {
     feedback.textContent = "";
     
     try {
-        const extractedDates = await fetchCandidatesWithGemini(apiKey, chatInput);
+        const weekdaysArray = Array.from(SELECTED_WEEKDAYS);
+        const extractedDates = await fetchCandidatesWithGemini(apiKey, chatInput, weekdaysArray);
         
         if (extractedDates && extractedDates.length > 0) {
              CANDIDATES = extractedDates;
@@ -227,12 +251,13 @@ function renderCandidates() {
         const card = document.createElement('div');
         card.className = 'candidate-card';
         card.dataset.date = date;
+        const safeId = date.replace(/[\s\(\)]/g, '-');
         
         // Render Template
         card.innerHTML = `
             <div class="date-lbl">${date.substring(5)}</div>
-            <div class="vote-count" id="count-${date}">0 표</div>
-            <div class="voter-avatars" id="avatars-${date}"></div>
+            <div class="vote-count" id="count-${safeId}">0 표</div>
+            <div class="voter-avatars" id="avatars-${safeId}"></div>
         `;
         
         card.addEventListener('click', () => {
@@ -286,8 +311,9 @@ function updateDashboardUI() {
     });
     
     CANDIDATES.forEach(d => {
-        document.getElementById(`count-${d}`).textContent = `${dayStats[d].count} 표`;
-        const avaContainer = document.getElementById(`avatars-${d}`);
+        const safeId = d.replace(/[\s\(\)]/g, '-');
+        document.getElementById(`count-${safeId}`).textContent = `${dayStats[d].count} 표`;
+        const avaContainer = document.getElementById(`avatars-${safeId}`);
         avaContainer.innerHTML = dayStats[d].pip.map(p => `<span class="voter-badge">${p}</span>`).join('');
     });
 }
