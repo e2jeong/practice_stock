@@ -34,6 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-close-modal').addEventListener('click', () => {
         document.getElementById('result-modal').classList.remove('active');
     });
+
+    // 시작 화면으로 복귀 (재설정)
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        document.getElementById('result-modal').classList.remove('active');
+        document.getElementById('section-dashboard').classList.remove('active');
+        document.getElementById('section-start').classList.add('active');
+        
+        // 상태 초기화
+        CANDIDATES = [];
+        PARTICIPANTS.forEach(p => VOTE_STATE[p] = null);
+        CURRENT_SELECTED_VOTER = null;
+        
+        // UI 초기화
+        document.getElementById('chat-input').value = "";
+        document.getElementById('btn-start').textContent = "투표 생성";
+        document.getElementById('btn-start').disabled = false;
+        document.getElementById('chat-feedback').textContent = "";
+    });
 });
 
 // 달력 매니저 로직 (다음 달 평일 휴일제외 3~5개 추출)
@@ -78,20 +96,34 @@ function getNextMonthCandidates() {
     return selected.sort(); // 오름차순
 }
 
-// Gemini API 연동 함수
-async function checkIntentWithGemini(apiKey, promptText) {
+// Gemini API 연동 함수 (조건에 맞는 날짜 직접 추출)
+async function fetchCandidatesWithGemini(apiKey, promptText) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+    
+    // 프롬프트 구성: 현재 시점과 휴일 데이터, 그리고 사용자 요구사항 명시
+    const promptDetails = `
+현재 상황: 당신은 팀 회식('도란') 일정을 잡아주는 스마트 비서입니다. 기준일은 2026년 4월입니다.
+미션: 2026년 5월(다음 달)의 날짜 중 3~5개의 후보일을 선정하여 JSON 배열 문자열 형태로만 응답하세요.
+
+[필수 조건]
+1. 평일(월~금)이어야 하며 주말은 제외합니다.
+2. 2026-05-05(어린이날), 2026-05-25(대체공휴일)은 제외합니다.
+3. 사용자의 요청에 특정 요일("화요일", "목요일" 등) 또는 기타 조건이 명시되어 있다면, 반드시 해당 조건에 부합하는 날짜만을 추출해야 합니다. 
+만약 아무 조건도 없다면 조건 1, 2를 만족하는 랜덤한 평일 3~5개를 골라주세요.
+
+사용자 요청: "${promptText}"
+
+[응답 형식]
+오류 없이 곧바로 파싱될 수 있도록 오직 배열 구조만 출력하세요. 
+예시: ["2026-05-07", "2026-05-12", "2026-05-14"]`;
+
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [
-                    {
-                        parts: [
-                            { text: `사용자의 입력: "${promptText}". 이 입력이 "다음 달 도란 일정 잡아줘" 또는 팀 회식 투표 일정을 요구하는 의미인지 판단하세요. 의미가 맞다면 "YES", 아니라면 "NO"만 출력하세요.` }
-                        ]
-                    }
+                    { parts: [{ text: promptDetails }] }
                 ]
             })
         });
@@ -99,8 +131,17 @@ async function checkIntentWithGemini(apiKey, promptText) {
         if (!response.ok) throw new Error('API Key 검증 오류 또는 서버 에러');
         
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.toUpperCase() || "";
-        return text.includes("YES");
+        let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        
+        // Markdown 코드 블록 제거(```json ... ```) 등 전처리
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const parsedDates = JSON.parse(text);
+        if (Array.isArray(parsedDates) && parsedDates.length > 0) {
+             return parsedDates;
+        } else {
+             throw new Error('의도된 날짜 포맷이 아닙니다.');
+        }
     } catch (e) {
         throw e;
     }
@@ -123,19 +164,17 @@ async function initGeminiProcess() {
     feedback.textContent = "";
     
     try {
-        const isIntentMatched = await checkIntentWithGemini(apiKey, chatInput);
+        const extractedDates = await fetchCandidatesWithGemini(apiKey, chatInput);
         
-        if (isIntentMatched) {
+        if (extractedDates && extractedDates.length > 0) {
+             CANDIDATES = extractedDates;
              transitionToDashboard();
-        } else {
-             feedback.textContent = "명령을 이해하지 못했습니다. 정확히 일정을 요구해주세요.";
-             btn.textContent = "투표 생성";
-             btn.disabled = false;
         }
     } catch (error) {
-         feedback.textContent = "API 호출 실패: 키가 유효하지 않거나 네트워크 문제입니다.";
+         feedback.textContent = "명령을 처리하지 못했습니다. (일정 포맷 해석 실패 또는 API 만료/오류)";
          btn.textContent = "투표 생성";
          btn.disabled = false;
+         console.error(error);
     }
 }
 
@@ -143,7 +182,7 @@ async function initGeminiProcess() {
 function transitionToDashboard() {
     document.getElementById('section-start').classList.remove('active');
     
-    CANDIDATES = getNextMonthCandidates();
+    // CANDIDATES는 이미 LLM을 통해 할당됨.
     
     renderParticipants();
     renderCandidates();

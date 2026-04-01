@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Global Navigation -->
+    <nav class="global-nav">
+        <a href="../doran_web/index.html" class="active">도란 일정 투표</a>
+        <a href="../stock_account_book/index.html">주식 가계부 (AI 상담)</a>
+    </nav>
+    
     <div id="app-container">
         
         <!-- 단계 1: 시스템 시작 / API 인증 및 프롬프트 -->
@@ -79,7 +85,10 @@
             </div>
             <p>투표 결과 데이터 (개발팀 전달용 JSON):</p>
             <pre id="json-result" class="json-code-box"></pre>
-            <button id="btn-close-modal" class="primary-btn mt-4 w-100">닫기</button>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button id="btn-close-modal" class="danger-btn w-100">닫기</button>
+                <button id="btn-restart" class="primary-btn w-100" style="margin: 0;">처음으로 돌아가기</button>
+            </div>
         </div>
     </div>
 
