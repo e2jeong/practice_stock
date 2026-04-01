@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doran - 팀 회식 투표 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        
+        <!-- 단계 1: 시스템 시작 / API 인증 및 프롬프트 -->
+        <div id="section-start" class="section glass-panel active">
+            <div class="logo-area">
+                <div class="glow-circle"></div>
+                <h1>DORAN</h1>
+                <p>프리미엄 팀 회식 일정 자동화 시스템</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="api-key">Gemini 3 Flash Preview API Key</label>
+                <input type="password" id="api-key" placeholder="AI 연동을 위한 키를 입력하세요..." autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <label for="chat-input">도란 일정 챗봇 (예: "다음 달 도란 일정 잡아줘")</label>
+                <div class="chat-row">
+                    <input type="text" id="chat-input" placeholder="원하시는 일정을 말씀해 주세요...">
+                    <button id="btn-start" class="primary-btn">로딩</button>
+                </div>
+                <div id="chat-feedback" class="feedback-msg"></div>
+            </div>
+        </div>
+
+        <!-- 단계 2: 투표 대시보드 -->
+        <div id="section-dashboard" class="section">
+            <header class="dash-header flex-between mb-4">
+                <h2>일정 투표 보드</h2>
+                <div class="action-buttons">
+                    <button id="btn-finish" class="danger-btn">투표 마감 및 결과 도출</button>
+                </div>
+            </header>
+            
+            <div class="flex-row g-4">
+                <!-- 참여자 목록 패널 -->
+                <div class="glass-panel w-30 participants-panel">
+                    <h3>참여자 <span id="voted-count-badge">0 / 8</span></h3>
+                    <p class="subtitle mb-4">클릭해서 본인을 선택하세요</p>
+                    <ul id="participant-list" class="participant-list">
+                        <!-- JS 렌더링 영역 -->
+                    </ul>
+                </div>
+
+                <!-- 일정 캘린더/후보 패널 -->
+                <div class="glass-panel w-70 candidates-panel">
+                    <div id="current-voter-display" class="voter-display-banner mb-4">
+                        <span class="pulse-dot"></span> 아직 선택된 참여자가 없습니다. 왼쪽에서 본인을 선택하세요.
+                    </div>
+                    
+                    <h3>다음 달 도란 후보일</h3>
+                    <p class="subtitle mb-4">가장 선호하는 날짜를 클릭하세요 (1인 1표)</p>
+                    <div id="candidate-list" class="candidate-grid">
+                        <!-- JS 렌더링 영역 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- 최종 결과 모달 -->
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel glow-border">
+            <h2 class="celeb-text">🎉 도란 일정이 확정되었습니다!</h2>
+            <div class="winner-badge mb-4">
+                <span class="label">최종 확정 날짜</span>
+                <span id="winner-date" class="date-val">2026-05-12</span>
+            </div>
+            <p>투표 결과 데이터 (개발팀 전달용 JSON):</p>
+            <pre id="json-result" class="json-code-box"></pre>
+            <button id="btn-close-modal" class="primary-btn mt-4 w-100">닫기</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
