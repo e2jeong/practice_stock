@@ -34,6 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-close-modal').addEventListener('click', () => {
         document.getElementById('result-modal').classList.remove('active');
     });
+
+    // 시작 화면으로 복귀 (재설정)
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        document.getElementById('result-modal').classList.remove('active');
+        document.getElementById('section-dashboard').classList.remove('active');
+        document.getElementById('section-start').classList.add('active');
+        
+        // 상태 초기화
+        CANDIDATES = [];
+        PARTICIPANTS.forEach(p => VOTE_STATE[p] = null);
+        CURRENT_SELECTED_VOTER = null;
+        
+        // UI 초기화
+        document.getElementById('chat-input').value = "";
+        document.getElementById('btn-start').textContent = "투표 생성";
+        document.getElementById('btn-start').disabled = false;
+        document.getElementById('chat-feedback').textContent = "";
+    });
 });
 
 // 달력 매니저 로직 (다음 달 평일 휴일제외 3~5개 추출)
